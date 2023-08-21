@@ -1,6 +1,6 @@
 <template>
     <section v-if="indexId == 0">
-        <div class="logo"><img class="logoPic" src="@/assets/icon/myLogo.svg" /></div>
+        <div class="logo"><img class="logoPic" src="@/assets/icon/myLogo.svg"/></div>
         <div class="caption"><span>邻接矩阵</span></div>
 
         <ul class="options">
@@ -13,7 +13,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import {ref} from 'vue'
 import adjTab from "@/components/adjTab.vue"
 
 const indexId = ref(0)
@@ -25,6 +25,10 @@ const buildTable = (index) => {
 </script>
 
 <style>
+body {
+    background-color: rgb(128, 128, 255);
+}
+
 .logo {
     width: 200px;
     height: 200px;
