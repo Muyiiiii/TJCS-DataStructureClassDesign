@@ -2,16 +2,16 @@
     <div v-if="!numCheck" class="input-container">
         <div class="inputNum-container">
             <p>请输入图中点的数量</p>
-            <el-input-number v-model="num" :min="1" :max="7" @change="handleChange" />
+            <el-input-number v-model="num" :min="1" :max="7" @change="handleChange"/>
             <el-button type="primary" @click="numCheckChange(true)">确认</el-button>
         </div>
     </div>
     <div v-else>
         <h1>添加有向边</h1>
         <p>起始节点</p>
-        <el-input-number v-model="a" :min="1" :max="num" controls-position="right" size="large" @change="handleChange" />
+        <el-input-number v-model="a" :min="1" :max="num" controls-position="right" size="large" @change="handleChange"/>
         <p>结束节点</p>
-        <el-input-number v-model="b" :min="1" :max="num" controls-position="right" size="large" @change="handleChange" />
+        <el-input-number v-model="b" :min="1" :max="num" controls-position="right" size="large" @change="handleChange"/>
         <el-button type="primary" @click="addEdge()" size="large" style="margin-left: 30px">添加有向边</el-button>
 
         <div class="adjTab">
@@ -19,10 +19,12 @@
                 <tr v-for="(row, rowIndex) in g" :key="rowIndex">
                     <td v-for="(cell, columnIndex) in row" :key="columnIndex">
                         <div v-if="cell">
-                            <el-button type="success" :icon="Check" circle />
+                            <el-button type="success" :icon="Check" circle
+                                       @click="addEdgeByClick(rowIndex, columnIndex, 'success')"/>
                         </div>
                         <div v-else>
-                            <el-button type="danger" :icon="Delete" circle />
+                            <el-button type="danger" :icon="Delete" circle
+                                       @click="addEdgeByClick(rowIndex, columnIndex, 'danger')"/>
                         </div>
                     </td>
                 </tr>
@@ -32,8 +34,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue' //VE是elmentui，ref是变量，vue是修改g用的
-import { ElMessage } from 'element-plus' //发送提示信息
+import {ref} from 'vue' //VE是elmentui，ref是变量，vue是修改g用的
+import {ElMessage} from 'element-plus' //发送提示信息
 
 const num = ref(0)
 const numCheck = ref(false) //num输入确认标志
@@ -56,9 +58,20 @@ function addEdge() {
     if (a.value <= 0 || a.value > num.value || b.value <= 0 || b.value > num.value) {
         ElMessage.error('起始节点和结束节点的编号应该大于0且小于等于' + num.value);
     } else {
-        ElMessage({ message: '有向边添加成功.', type: 'success', });
+        ElMessage({message: '有向边添加成功.', type: 'success',});
         g.value[a.value - 1][b.value - 1] = true;
         console.log(g.value[a.value - 1][b.value - 1]);
+    }
+}
+
+// 切换边的连接状态
+function addEdgeByClick(rowIndex, columnIndex, type) {
+    console.log(`Button at row ${rowIndex} and column ${columnIndex} of type ${type} was clicked.`);
+    // 这里你可以根据 rowIndex、columnIndex 和 type 执行更复杂的逻辑
+    if (type === 'success') {
+        g.value[rowIndex][columnIndex] = false;
+    } else {
+        g.value[rowIndex][columnIndex] = true;
     }
 }
 
