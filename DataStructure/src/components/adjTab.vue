@@ -1,7 +1,7 @@
 <template>
     <div class="common-layout">
         <el-container>
-            <el-aside width="400px">
+            <el-aside width="200px">
                 <div id="input-container">
                     <div v-if="!numCheck">
                         <div class="inputNum-container">
@@ -112,7 +112,7 @@ function changeEdgeByClick(rowIndex, columnIndex, type) {
     } else {
         matrix.value[rowIndex][columnIndex] = true;
 
-        links.value.push({source: rowIndex, target: columnIndex, value: 5});
+        links.value.push({source: rowIndex, target: columnIndex, value: 100});
 
         console.log(links);
     }
@@ -140,7 +140,7 @@ onMounted(() => {
 });
 
 const color = d3.scaleOrdinal(d3.schemeCategory10);
-const width = 300;
+const width = 1000;
 const height = 600;
 
 function initGraph(data) {
@@ -180,7 +180,7 @@ function initGraph(data) {
         .selectAll()
         .data(nodes)
         .join("circle")
-        .attr("r", 5)
+        .attr("r", 20)
         .attr("fill", d => color(d.group));
 
     node.append("title")
@@ -233,48 +233,61 @@ watch(links, () => {
 });
 
 function updateGraph() {
-    // 这里是将现有的节点和边从SVG中移除的代码
     const svg = d3.select("#svg");
-
-    svg.selectAll("line").remove();
-    svg.selectAll("circle").remove();
-
-    // 以下是创建新节点和边的代码。这基本上是您原来的 `initGraph` 函数的部分代码，但我对其进行了修改，以便重新使用它。
 
     const links = testGraph.value.links.map(d => ({...d}));
     const nodes = testGraph.value.nodes.map(d => ({...d}));
 
-    // Create a simulation with several forces.
+    // Simulation setup remains unchanged
     const simulation = d3.forceSimulation(nodes)
         .force("link", d3.forceLink(links).id(d => d.id))
         .force("charge", d3.forceManyBody())
         .force("center", d3.forceCenter(width / 2, height / 2))
         .on("tick", ticked);
 
-    const link = svg.append("g")
+    // Update links
+    const link = svg.select("g").selectAll("line")
+        .data(links, d => d.id);  // Use an id or similar to track each link
+
+    link.exit().remove(); // Remove old links
+
+    link.enter().append("line")
         .attr("stroke", "#999")
         .attr("stroke-opacity", 0.6)
-        .selectAll()
-        .data(links)
-        .join("line")
         .attr("stroke-width", d => Math.sqrt(d.value));
 
-    const node = svg.append("g")
-        .attr("stroke", "#fff")
-        .attr("stroke-width", 1.5)
-        .selectAll()
-        .data(nodes)
-        .join("circle")
-        .attr("r", 5)
-        .attr("fill", d => color(d.group));
+    // Update nodes
+    const node = svg.select("g").selectAll("circle")
+        .data(nodes, d => d.id);  // Use an id or similar to track each node
 
-    node.append("title")
+    node.exit().remove(); // Remove old nodes
+
+    const newNode = node.enter().append("circle")
+        .attr("r", 20)
+        .attr("fill", d => color(d.group))
+        .attr("stroke", "#fff")
+        .attr("stroke-width", 1.5);
+
+    newNode.append("title")
         .text(d => d.id);
 
-    node.call(d3.drag()
+    newNode.call(d3.drag()
         .on("start", dragstarted)
         .on("drag", dragged)
         .on("end", dragended));
+
+    // The rest of the code remains unchanged
+    function ticked() {
+        link
+            .attr("x1", d => d.source.x)
+            .attr("y1", d => d.source.y)
+            .attr("x2", d => d.target.x)
+            .attr("y2", d => d.target.y);
+
+        node
+            .attr("cx", d => d.x)
+            .attr("cy", d => d.y);
+    }
 
 
     // Set the position attributes of links and nodes each time the simulation ticks.

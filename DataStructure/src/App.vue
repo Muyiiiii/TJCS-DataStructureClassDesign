@@ -1,5 +1,5 @@
 <template>
-    <section v-if="indexId == 0">
+    <section v-if="indexId === 0">
         <div class="logo"><img class="logoPic" src="@/assets/icon/myLogo.svg"/></div>
         <div class="caption"><span>邻接矩阵</span></div>
 
@@ -9,13 +9,13 @@
             <li @click="buildTable(3)">画图2</li>
         </ul>
     </section>
-    <section v-else-if="indexId == 1">
+    <section v-else-if="indexId === 1">
         <adjTab></adjTab>
     </section>
-    <section v-else-if="indexId == 2">
+    <section v-else-if="indexId === 2">
         <pic></pic>
     </section>
-    <section v-else-if="indexId == 3">
+    <section v-else-if="indexId === 3">
         <gra></gra>
     </section>
 </template>
