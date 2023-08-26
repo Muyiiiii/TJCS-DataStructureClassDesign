@@ -21,7 +21,7 @@ import { ref } from 'vue'
 import adjTab from "@/components/adjTab.vue"
 import pic from "@/components/pic.vue"
 
-const indexId = ref(0)
+const indexId = ref(1)
 
 const buildTable = (index) => {
     indexId.value = index
