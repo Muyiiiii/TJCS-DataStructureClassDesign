@@ -1,11 +1,12 @@
 <template>
     <section v-if="indexId == 0">
-        <div class="logo"><img class="logoPic" src="@/assets/icon/myLogo.svg" /></div>
+        <div class="logo"><img class="logoPic" src="@/assets/icon/myLogo.svg"/></div>
         <div class="caption"><span>邻接矩阵</span></div>
 
         <ul class="options">
             <li @click="buildTable(1)">建立临界矩阵</li>
             <li @click="buildTable(2)">画图</li>
+            <li @click="buildTable(3)">画图2</li>
         </ul>
     </section>
     <section v-else-if="indexId == 1">
@@ -14,14 +15,18 @@
     <section v-else-if="indexId == 2">
         <pic></pic>
     </section>
+    <section v-else-if="indexId == 3">
+        <gra></gra>
+    </section>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import {ref} from 'vue'
 import adjTab from "@/components/adjTab.vue"
 import pic from "@/components/pic.vue"
+import gra from "@/components/gra.vue"
 
-const indexId = ref(1)
+const indexId = ref(0)
 
 const buildTable = (index) => {
     indexId.value = index
