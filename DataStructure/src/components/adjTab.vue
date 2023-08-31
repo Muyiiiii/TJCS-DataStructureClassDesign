@@ -39,7 +39,7 @@
                         </div>
                     </div>
                 </div>
-                <div v-for="edge in links" style="background: aqua">
+                <div v-for="edge in graphData.links" style="background: aqua">
                     {{ edge.source }} {{ edge.target }}
                 </div>
             </el-aside>
@@ -53,7 +53,7 @@
 </template>
 
 <script setup>
-import {ref, onMounted, computed, watch} from 'vue' //VE是elmentui，ref是变量，vue是修改g用的
+import {ref, onMounted, watch} from 'vue' //VE是elmentui，ref是变量，vue是修改g用的
 import {ElMessage} from 'element-plus' //发送提示信息
 import {Check, Delete} from '@element-plus/icons-vue'
 import * as d3 from 'd3'
@@ -64,8 +64,18 @@ const a = ref(0);//有向边的起始节点
 const b = ref(0);//有向边的结束节点
 // 存储图的节点和边的信息
 const matrix = ref([]);
-const nodes = ref([]);
-const links = ref([]);
+const graphData = ref({
+    nodes: [
+        {"id": 0, "group": 1},
+        {"id": 1, "group": 1},
+        {"id": 2, "group": 2},
+        {"id": 3, "group": 3},
+    ],
+    links: [
+        {"source": 1, "target": 2, "value": 5},
+        {"source": 2, "target": 3, "value": 5},
+    ]
+});
 
 
 const handleChange = (value) => {
@@ -76,12 +86,10 @@ function numCheckChange(check) {
     matrix.value = Array.from(Array(num.value), () => new Array(num.value).fill(false));
     numCheck.value = check;
 
-    for (let i = 0; i < num.value; i++) {
-        nodes.value.push({id: i, group: i});
+    //这里的group是用来确定点的颜色的
+    for (let i = 4; i < num.value; i++) {
+        graphData.value.nodes.push({id: i, group: i});
     }
-
-    links.value.push({source: 1, target: 0, value: 5});
-    links.value.push({source: 1, target: 2, value: 5});
 
     console.log('matrix Info: ', matrix.value.length, matrix.value[0].length);
 }
@@ -92,7 +100,7 @@ function addEdgeByInput() {
     } else {
         ElMessage({message: '有向边添加成功.', type: 'success',});
         matrix.value[a.value - 1][b.value - 1] = true;
-        links.value.push({source: a.value - 1, target: b.value - 1, value: 5});
+        graphData.value.links.push({source: a.value - 1, target: b.value - 1, value: 5});
         console.log(matrix.value[a.value - 1][b.value - 1]);
     }
 }
@@ -106,37 +114,27 @@ function changeEdgeByClick(rowIndex, columnIndex, type) {
     if (type === 'success') {
         matrix.value[rowIndex][columnIndex] = false;
 
-        links.value = links.value.filter(edge => {
+        graphData.value.links = graphData.value.links.filter(edge => {
             return !(edge.source === rowIndex && edge.target === columnIndex);
         });
     } else {
         matrix.value[rowIndex][columnIndex] = true;
 
-        links.value.push({source: rowIndex, target: columnIndex, value: 100});
+        graphData.value.links.push({source: rowIndex, target: columnIndex, value: 100});
 
-        console.log(links);
+        console.log('source:', rowIndex, 'target:', columnIndex);
     }
-
-    updateGraph();
 }
 
-const testGraph = computed(() => {
-    return {
-        nodes: nodes.value,
-        links: links.value
-    };
-});
+watch(graphData.value, (newData, oldData) => {
+    // 清除旧的图形
+    d3.select("#svg").selectAll("*").remove();
 
-watch(nodes, (newNodes) => {
-    testGraph.value.nodes = newNodes;
-});
-
-watch(links, (newLinks) => {
-    testGraph.value.links = newLinks;
+    initGraph(newData)
 });
 
 onMounted(() => {
-    initGraph(testGraph)
+    initGraph(graphData.value)
 });
 
 const color = d3.scaleOrdinal(d3.schemeCategory10);
@@ -148,8 +146,8 @@ function initGraph(data) {
 
     // The force simulation mutates links and nodes, so create a copy
     // so that re-evaluating this cell produces the same result.
-    const links = data.value.links.map(d => ({...d}));
-    const nodes = data.value.nodes.map(d => ({...d}));
+    const links = data.links.map(d => ({...d}));
+    const nodes = data.nodes.map(d => ({...d}));
 
     // Create a simulation with several forces.
     const simulation = d3.forceSimulation(nodes)
@@ -162,7 +160,7 @@ function initGraph(data) {
     const svg = d3.select("#svg")
         .attr("width", width)
         .attr("height", height)
-        .attr("viewBox", [0, 0, width, height])
+        // .attr("viewBox", [0, 0, width, height])
         .attr("style", "max-width: 100%; height: auto;");
 
     // Add a line for each link, and a circle for each node.
@@ -172,7 +170,9 @@ function initGraph(data) {
         .selectAll()
         .data(links)
         .join("line")
-        .attr("stroke-width", d => Math.sqrt(d.value));
+        // .attr("stroke-width", d => Math.sqrt(d.value));
+        .attr("stroke", "red")  // 将所有线的颜色更改为红色
+        .attr("stroke-width", 15);
 
     const node = svg.append("g")
         .attr("stroke", "#fff")
@@ -180,7 +180,7 @@ function initGraph(data) {
         .selectAll()
         .data(nodes)
         .join("circle")
-        .attr("r", 20)
+        .attr("r", 10)
         .attr("fill", d => color(d.group));
 
     node.append("title")
@@ -226,103 +226,6 @@ function initGraph(data) {
         event.subject.fy = null;
     }
 
-}
-
-watch(links, () => {
-    updateGraph();
-});
-
-function updateGraph() {
-    const svg = d3.select("#svg");
-
-    const links = testGraph.value.links.map(d => ({...d}));
-    const nodes = testGraph.value.nodes.map(d => ({...d}));
-
-    // Simulation setup remains unchanged
-    const simulation = d3.forceSimulation(nodes)
-        .force("link", d3.forceLink(links).id(d => d.id))
-        .force("charge", d3.forceManyBody())
-        .force("center", d3.forceCenter(width / 2, height / 2))
-        .on("tick", ticked);
-
-    // Update links
-    const link = svg.select("g").selectAll("line")
-        .data(links, d => d.id);  // Use an id or similar to track each link
-
-    link.exit().remove(); // Remove old links
-
-    link.enter().append("line")
-        .attr("stroke", "#999")
-        .attr("stroke-opacity", 0.6)
-        .attr("stroke-width", d => Math.sqrt(d.value));
-
-    // Update nodes
-    const node = svg.select("g").selectAll("circle")
-        .data(nodes, d => d.id);  // Use an id or similar to track each node
-
-    node.exit().remove(); // Remove old nodes
-
-    const newNode = node.enter().append("circle")
-        .attr("r", 20)
-        .attr("fill", d => color(d.group))
-        .attr("stroke", "#fff")
-        .attr("stroke-width", 1.5);
-
-    newNode.append("title")
-        .text(d => d.id);
-
-    newNode.call(d3.drag()
-        .on("start", dragstarted)
-        .on("drag", dragged)
-        .on("end", dragended));
-
-    // The rest of the code remains unchanged
-    function ticked() {
-        link
-            .attr("x1", d => d.source.x)
-            .attr("y1", d => d.source.y)
-            .attr("x2", d => d.target.x)
-            .attr("y2", d => d.target.y);
-
-        node
-            .attr("cx", d => d.x)
-            .attr("cy", d => d.y);
-    }
-
-
-    // Set the position attributes of links and nodes each time the simulation ticks.
-    function ticked() {
-        link
-            .attr("x1", d => d.source.x)
-            .attr("y1", d => d.source.y)
-            .attr("x2", d => d.target.x)
-            .attr("y2", d => d.target.y);
-
-        node
-            .attr("cx", d => d.x)
-            .attr("cy", d => d.y);
-    }
-
-    // Reheat the simulation when drag starts, and fix the subject position.
-    function dragstarted(event) {
-        if (!event.active) simulation.alphaTarget(0.3).restart();
-        event.subject.fx = event.subject.x;
-        event.subject.fy = event.subject.y;
-    }
-
-    // Update the subject (dragged node) position during drag.
-    function dragged(event) {
-        event.subject.fx = event.x;
-        event.subject.fy = event.y;
-    }
-
-    // Restore the target alpha so the simulation cools after dragging ends.
-    // Unfix the subject position now that it’s no longer being dragged.
-    function dragended(event) {
-        if (!event.active) simulation.alphaTarget(0);
-        event.subject.fx = null;
-        event.subject.fy = null;
-    }
 }
 
 </script>
