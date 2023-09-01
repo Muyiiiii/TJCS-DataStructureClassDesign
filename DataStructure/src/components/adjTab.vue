@@ -25,18 +25,27 @@
                             <table>
                                 <tr v-for="(row, rowIndex) in matrix" :key="rowIndex">
                                     <td v-for="(cell, columnIndex) in row" :key="columnIndex">
-                                        <div v-if="cell">
-                                            <el-button type="success" :icon="Check" circle
-                                                       @click="changeEdgeByClick(rowIndex, columnIndex, 'success')"/>
+                                        <div v-if="rowIndex == columnIndex">
+                                            <el-button type="info" :icon="Message" circle/>
                                         </div>
                                         <div v-else>
-                                            <el-button type="danger" :icon="Delete" circle
-                                                       @click="changeEdgeByClick(rowIndex, columnIndex, 'danger')"/>
+                                            <div v-if="cell">
+                                                <el-button type="success" :icon="Check" circle
+                                                           @click="changeEdgeByClick(rowIndex, columnIndex, 'success')"/>
+                                            </div>
+                                            <div v-else>
+                                                <el-button type="danger" :icon="Delete" circle
+                                                           @click="changeEdgeByClick(rowIndex, columnIndex, 'danger')"/>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
                             </table>
                         </div>
+                        <p>遍历的起始节点</p>
+                        <el-input-number v-model="startNode" :min="1" :max="num" @change="handleChange"/>
+                        <el-button type="success" round @click="bfs(matrix,startNode,onVisit)">开始BFS遍历
+                        </el-button>
                     </div>
                 </div>
                 <div v-for="edge in graphData.links" style="background: aqua">
@@ -45,7 +54,7 @@
             </el-aside>
             <el-main>
                 <div id="graph-container">
-                    <svg id="svg" style="background-color: brown;"></svg>
+                    <svg id="svg"></svg>
                 </div>
             </el-main>
         </el-container>
@@ -55,26 +64,20 @@
 <script setup>
 import {ref, onMounted, watch} from 'vue' //VE是elmentui，ref是变量，vue是修改g用的
 import {ElMessage} from 'element-plus' //发送提示信息
-import {Check, Delete} from '@element-plus/icons-vue'
+import {Check, Delete, Message} from '@element-plus/icons-vue'
 import * as d3 from 'd3'
 
 const num = ref(0);
 const numCheck = ref(false);//num输入确认标志
 const a = ref(0);//有向边的起始节点
 const b = ref(0);//有向边的结束节点
+//选择bfs和dfs开始的结点
+const startNode = ref(0)
 // 存储图的节点和边的信息
 const matrix = ref([]);
 const graphData = ref({
-    nodes: [
-        {"id": 0, "group": 1},
-        {"id": 1, "group": 1},
-        {"id": 2, "group": 2},
-        {"id": 3, "group": 3},
-    ],
-    links: [
-        {"source": 1, "target": 2, "value": 5},
-        {"source": 2, "target": 3, "value": 5},
-    ]
+    nodes: [],
+    links: []
 });
 
 
@@ -87,7 +90,7 @@ function numCheckChange(check) {
     numCheck.value = check;
 
     //这里的group是用来确定点的颜色的
-    for (let i = 4; i < num.value; i++) {
+    for (let i = 0; i < num.value; i++) {
         graphData.value.nodes.push({id: i, group: i});
     }
 
@@ -119,6 +122,7 @@ function changeEdgeByClick(rowIndex, columnIndex, type) {
         });
     } else {
         matrix.value[rowIndex][columnIndex] = true;
+        matrix.value[columnIndex][rowIndex] = true;
 
         graphData.value.links.push({source: rowIndex, target: columnIndex, value: 100});
 
@@ -151,8 +155,8 @@ function initGraph(data) {
 
     // Create a simulation with several forces.
     const simulation = d3.forceSimulation(nodes)
-        .force("link", d3.forceLink(links).id(d => d.id))
-        .force("charge", d3.forceManyBody())
+        .force("link", d3.forceLink(links).id(d => d.id).strength(0.06))
+        .force("charge", d3.forceManyBody().strength(-100))
         .force("center", d3.forceCenter(width / 2, height / 2))
         .on("tick", ticked);
 
@@ -161,7 +165,7 @@ function initGraph(data) {
         .attr("width", width)
         .attr("height", height)
         // .attr("viewBox", [0, 0, width, height])
-        .attr("style", "max-width: 100%; height: auto;");
+        .attr("style", "max-width: 100%; height: auto;background-color:white");
 
     // Add a line for each link, and a circle for each node.
     const link = svg.append("g")
@@ -171,26 +175,28 @@ function initGraph(data) {
         .data(links)
         .join("line")
         // .attr("stroke-width", d => Math.sqrt(d.value));
-        .attr("stroke", "red")  // 将所有线的颜色更改为红色
+        .attr("stroke", "green")  // 将所有线的颜色更改为红色
         .attr("stroke-width", 15);
 
-    const node = svg.append("g")
-        .attr("stroke", "#fff")
-        .attr("stroke-width", 1.5)
-        .selectAll()
+    const nodeGroup = svg.append("g")
+        .selectAll(".node-group")
         .data(nodes)
-        .join("circle")
-        .attr("r", 10)
-        .attr("fill", d => color(d.group));
+        .join("g")
+        .attr("class", "node-group")
+        .call(d3.drag()
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended));
 
-    node.append("title")
+    nodeGroup.append("circle")
+        .attr("r", 20)
+        .attr("fill", d => color(d.group))
+        .attr("id", d => "node-" + d.id);
+
+    nodeGroup.append("text")
+        .attr("dy", "0.35em")
+        .attr("text-anchor", "middle")
         .text(d => d.id);
-
-    // Add a drag behavior.
-    node.call(d3.drag()
-        .on("start", dragstarted)
-        .on("drag", dragged)
-        .on("end", dragended));
 
     // Set the position attributes of links and nodes each time the simulation ticks.
     function ticked() {
@@ -200,9 +206,8 @@ function initGraph(data) {
             .attr("x2", d => d.target.x)
             .attr("y2", d => d.target.y);
 
-        node
-            .attr("cx", d => d.x)
-            .attr("cy", d => d.y);
+        nodeGroup
+            .attr("transform", d => `translate(${d.x}, ${d.y})`);
     }
 
     // Reheat the simulation when drag starts, and fix the subject position.
@@ -228,6 +233,35 @@ function initGraph(data) {
 
 }
 
+function bfs(adjMatrix, startNode, onVisit) {
+    let visited = new Array(adjMatrix.value.length).fill(false);
+    let queue = [];
+
+    queue.push(startNode);
+    visited[startNode] = true;
+
+    while (queue.length > 0) {
+        let currentNode = queue.shift();
+        onVisit(currentNode); // Callback to handle node visit
+
+        for (let i = 0; i < adjMatrix.value[currentNode].length; i++) {
+            if (adjMatrix[currentNode][i] && !visited[i]) {
+                queue.push(i);
+                visited[i] = true;
+            }
+        }
+    }
+}
+
+function onVisit(nodeIndex) {
+    d3.select(`#node-${nodeIndex}`).attr("fill", "aqua");
+}
+
+// // Use BFS and change color of nodes in D3 graph when they are visited
+// bfs(matrix.value, 0, (nodeIndex) => {
+//     d3.select(`#node-${nodeIndex}`).attr("fill", "red"); // Assuming nodes have IDs like node-0, node-1, etc.
+// });
+
 </script>
 
 <style>
@@ -242,4 +276,12 @@ function initGraph(data) {
 .adjTab {
     margin-top: 5px;
 }
+
+.unselectable {
+    user-select: none;
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE/Edge */
+}
+
 </style>
