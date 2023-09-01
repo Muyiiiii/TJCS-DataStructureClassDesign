@@ -44,7 +44,7 @@
                         </div>
                         <p>遍历的起始节点</p>
                         <el-input-number v-model="startNode" :min="1" :max="num" @change="handleChange"/>
-                        <el-button type="success" round @click="bfs(matrix,startNode,onVisit)">开始BFS遍历
+                        <el-button type="success" round @click="bfs()">开始BFS遍历
                         </el-button>
                     </div>
                 </div>
@@ -233,19 +233,25 @@ function initGraph(data) {
 
 }
 
-function bfs(adjMatrix, startNode, onVisit) {
-    let visited = new Array(adjMatrix.value.length).fill(false);
+function bfs() {
+    let visited = new Array(matrix.value.length).fill(false);
     let queue = [];
 
-    queue.push(startNode);
-    visited[startNode] = true;
+    queue.push(startNode.value);
+    visited[startNode.value] = true;
 
     while (queue.length > 0) {
         let currentNode = queue.shift();
         onVisit(currentNode); // Callback to handle node visit
 
-        for (let i = 0; i < adjMatrix.value[currentNode].length; i++) {
-            if (adjMatrix[currentNode][i] && !visited[i]) {
+        let currentRow = matrix.value[currentNode];
+        if (!currentRow) {
+            console.error(`No row in adjMatrix for node ${currentNode}`);
+            continue;
+        }
+
+        for (let i = 0; i < currentRow.length; i++) {
+            if (currentRow[i] && !visited[i]) {
                 queue.push(i);
                 visited[i] = true;
             }
@@ -253,14 +259,10 @@ function bfs(adjMatrix, startNode, onVisit) {
     }
 }
 
+
 function onVisit(nodeIndex) {
     d3.select(`#node-${nodeIndex}`).attr("fill", "aqua");
 }
-
-// // Use BFS and change color of nodes in D3 graph when they are visited
-// bfs(matrix.value, 0, (nodeIndex) => {
-//     d3.select(`#node-${nodeIndex}`).attr("fill", "red"); // Assuming nodes have IDs like node-0, node-1, etc.
-// });
 
 </script>
 
