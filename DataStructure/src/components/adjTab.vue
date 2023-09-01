@@ -11,12 +11,12 @@
                         </div>
                     </div>
                     <div v-else>
-                        <h1>添加有向边</h1>
+                        <h1>添加无向边</h1>
                         <p>起始节点</p>
-                        <el-input-number v-model="a" :min="1" :max="num" controls-position="right" size="large"
+                        <el-input-number v-model="a" :min="0" :max="num-1" controls-position="right" size="large"
                                          @change="handleChange"/>
                         <p>结束节点</p>
-                        <el-input-number v-model="b" :min="1" :max="num" controls-position="right" size="large"
+                        <el-input-number v-model="b" :min="0" :max="num-1" controls-position="right" size="large"
                                          @change="handleChange"/>
                         <el-button type="primary" @click="addEdgeByInput()" size="large" style="margin-left: 30px">添加有向边
                         </el-button>
@@ -43,9 +43,16 @@
                             </table>
                         </div>
                         <p>遍历的起始节点</p>
-                        <el-input-number v-model="startNode" :min="1" :max="num" @change="handleChange"/>
-                        <el-button type="success" round @click="bfs()">开始BFS遍历
-                        </el-button>
+                        <el-input-number v-model="startNode" :min="0" :max="num-1" @change="handleChange"/>
+                        <el-button type="success" round @click="bfs()">开始BFS遍历</el-button>
+                        <el-button type="success" round @click="dfs_recursion()">开始递归的DFS遍历</el-button>
+                        <el-button type="success" round @click="dfs_nonrecursion()">开始非递归的DFS遍历</el-button>
+                        <div v-for="node in queue">
+                            <el-tag>{{ node }}</el-tag>
+                        </div>
+                        <div v-for="node in [...stack].reverse()">
+                            <el-tag>{{ node }}</el-tag>
+                        </div>
                     </div>
                 </div>
                 <div v-for="edge in graphData.links" style="background: aqua">
@@ -79,6 +86,13 @@ const graphData = ref({
     nodes: [],
     links: []
 });
+const queue = ref([])
+const stack = ref([])
+
+const color = d3.scaleOrdinal(d3.schemeCategory10);
+const width = 1000;
+const height = 600;
+let originalColors = {}; // 用于存储每个节点的原始颜色
 
 
 const handleChange = (value) => {
@@ -98,13 +112,13 @@ function numCheckChange(check) {
 }
 
 function addEdgeByInput() {
-    if (a.value <= 0 || a.value > num.value || b.value <= 0 || b.value > num.value) {
+    if (a.value < 0 || a.value >= num.value || b.value < 0 || b.value >= num.value) {
         ElMessage.error('起始节点和结束节点的编号应该大于0且小于等于' + num.value);
     } else {
         ElMessage({message: '有向边添加成功.', type: 'success',});
-        matrix.value[a.value - 1][b.value - 1] = true;
-        graphData.value.links.push({source: a.value - 1, target: b.value - 1, value: 5});
-        console.log(matrix.value[a.value - 1][b.value - 1]);
+        matrix.value[a.value][b.value] = true;
+        graphData.value.links.push({source: a.value, target: b.value, value: 5});
+        console.log(matrix.value[a.value][b.value]);
     }
 }
 
@@ -112,8 +126,8 @@ function addEdgeByInput() {
 function changeEdgeByClick(rowIndex, columnIndex, type) {
     console.log(`Button at row ${rowIndex} and column ${columnIndex} of type ${type} was clicked.`);
     // 这里你可以根据 rowIndex、columnIndex 和 type 执行更复杂的逻辑
-    a.value = rowIndex + 1;
-    b.value = columnIndex + 1;
+    a.value = rowIndex;
+    b.value = columnIndex;
     if (type === 'success') {
         matrix.value[rowIndex][columnIndex] = false;
 
@@ -141,9 +155,6 @@ onMounted(() => {
     initGraph(graphData.value)
 });
 
-const color = d3.scaleOrdinal(d3.schemeCategory10);
-const width = 1000;
-const height = 600;
 
 function initGraph(data) {
     // Specify the color scale.
@@ -176,7 +187,7 @@ function initGraph(data) {
         .join("line")
         // .attr("stroke-width", d => Math.sqrt(d.value));
         .attr("stroke", "green")  // 将所有线的颜色更改为红色
-        .attr("stroke-width", 15);
+        .attr("stroke-width", 10);
 
     const nodeGroup = svg.append("g")
         .selectAll(".node-group")
@@ -190,12 +201,17 @@ function initGraph(data) {
 
     nodeGroup.append("circle")
         .attr("r", 20)
-        .attr("fill", d => color(d.group))
+        .attr("fill", d => {
+            originalColors[d.id] = color(d.group); // 存储原始颜色
+            return color(d.group);
+        })
         .attr("id", d => "node-" + d.id);
 
     nodeGroup.append("text")
         .attr("dy", "0.35em")
         .attr("text-anchor", "middle")
+        .attr("id", d => "text-" + d.id)
+        .attr("class", "unselectable")
         .text(d => d.id);
 
     // Set the position attributes of links and nodes each time the simulation ticks.
@@ -234,34 +250,136 @@ function initGraph(data) {
 }
 
 function bfs() {
-    let visited = new Array(matrix.value.length).fill(false);
-    let queue = [];
+    stack.value = [];
+    queue.value = [];
 
-    queue.push(startNode.value);
+    for (let i = 0; i < num.value; i++) {
+        d3.select(`#text-${i}`).attr("fill", "black");
+    }
+
+    let visited = new Array(matrix.value.length).fill(false);
+
+    queue.value.push(startNode.value);
     visited[startNode.value] = true;
 
-    while (queue.length > 0) {
-        let currentNode = queue.shift();
+    function processNextNode() {
+        if (queue.value.length === 0) return; // 结束条件
+
+        let currentNode = queue.value.shift();
         onVisit(currentNode); // Callback to handle node visit
 
         let currentRow = matrix.value[currentNode];
         if (!currentRow) {
             console.error(`No row in adjMatrix for node ${currentNode}`);
-            continue;
+            return;
         }
 
         for (let i = 0; i < currentRow.length; i++) {
             if (currentRow[i] && !visited[i]) {
-                queue.push(i);
+                queue.value.push(i);
                 visited[i] = true;
             }
         }
+
+        // 使用 setTimeout 递归调用 processNextNode，以添加延迟
+        setTimeout(processNextNode, 1000); // 600ms 延迟
     }
+
+    processNextNode(); // 开始 BFS
 }
 
-
 function onVisit(nodeIndex) {
+    // 首先，恢复所有节点的原始颜色
+    for (let nodeId in originalColors) {
+        d3.select(`#node-${nodeId}`).attr("fill", originalColors[nodeId]);
+    }
+
+    // 然后，将当前节点的颜色设置为 aqua
     d3.select(`#node-${nodeIndex}`).attr("fill", "aqua");
+    d3.select(`#text-${nodeIndex}`).attr("fill", "white");
+}
+
+function dfs_recursion() {
+    stack.value = [];
+    queue.value = [];
+
+    let visited = new Array(matrix.value.length).fill(false);
+
+    for (let i = 0; i < num.value; i++) {
+        d3.select(`#text-${i}`).attr("fill", "black");
+    }
+
+    function recursiveDFS(currentNode, callback = () => {
+    }) {
+        if (visited[currentNode]) return callback();
+
+        visited[currentNode] = true;
+        onVisit(currentNode); // Callback to handle node visit
+        console.log(currentNode);
+
+        let currentRow = matrix.value[currentNode];
+        if (!currentRow) {
+            console.error(`No row in adjMatrix for node ${currentNode}`);
+            return callback();
+        }
+
+        // 使用一个即时函数来递归遍历邻居
+        (function visitNextNeighbor(index) {
+            if (index >= currentRow.length) return callback(); // 所有邻居都已被访问
+
+            if (currentRow[index] && !visited[index]) {
+                setTimeout(() => {
+                    recursiveDFS(index, () => {
+                        visitNextNeighbor(index + 1); // 在当前邻居被完全访问后，再访问下一个邻居
+                    });
+                }, 1000);
+            } else {
+                visitNextNeighbor(index + 1); // 如果当前邻居已被访问或不存在，直接访问下一个邻居
+            }
+        })(0); // 从第一个邻居开始
+    }
+
+
+    recursiveDFS(startNode.value); // Start DFS
+}
+
+function dfs_nonrecursion() {
+    stack.value = [];
+    queue.value = [];
+
+    let visited = new Array(matrix.value.length).fill(false);
+
+    for (let i = 0; i < num.value; i++) {
+        d3.select(`#text-${i}`).attr("fill", "black");
+    }
+
+    stack.value.push(startNode.value);
+    visited[startNode.value] = true;
+
+    function processNextNode() {
+        if (stack.value.length === 0) return; // 结束条件
+
+        let currentNode = stack.value.pop();
+        onVisit(currentNode); // Callback to handle node visit
+
+        let currentRow = matrix.value[currentNode];
+        if (!currentRow) {
+            console.error(`No row in adjMatrix for node ${currentNode}`);
+            return;
+        }
+
+        for (let i = 0; i < currentRow.length; i++) {
+            if (currentRow[i] && !visited[i]) {
+                stack.value.push(i);
+                visited[i] = true;
+            }
+        }
+
+        // 使用 setTimeout 递归调用 processNextNode，以添加延迟
+        setTimeout(processNextNode, 1000); // 1000ms 延迟
+    }
+
+    processNextNode(); // 开始 DFS
 }
 
 </script>
