@@ -1,77 +1,110 @@
 <template>
     <div class="common-layout">
         <el-container>
-            <el-aside width="200px">
-                <div id="input-container">
+            <el-aside width="35%">
+                <div class="input-container">
                     <div v-if="!numCheck">
                         <div class="inputNum-container">
                             <p>请输入图中点的数量</p>
-                            <el-input-number v-model="num" :min="1" :max="7" @change="handleChange"/>
+                            <el-input-number v-model="num" :min="1" :max="7" @change="handleChange" />
                             <el-button type="primary" @click="numCheckChange(true)">确认</el-button>
                         </div>
                     </div>
                     <div v-else>
-                        <h1>添加无向边</h1>
-                        <p>起始节点</p>
-                        <el-input-number v-model="a" :min="0" :max="num-1" controls-position="right" size="large"
-                                         @change="handleChange"/>
-                        <p>结束节点</p>
-                        <el-input-number v-model="b" :min="0" :max="num-1" controls-position="right" size="large"
-                                         @change="handleChange"/>
-                        <el-button type="primary" @click="addEdgeByInput()" size="large" style="margin-left: 30px">添加有向边
-                        </el-button>
+                        <el-row>
+                            <el-col :span="16">
+                                <h1>添加无向边</h1>
+                                <div class="input-data">
+                                    <div class="input-content">
+                                        <p>起始节点</p>
+                                    </div>
+                                    <el-input-number v-model="a" :min="0" :max="num - 1" controls-position="right"
+                                        size="large" @change="handleChange" />
+                                </div>
+                                <div class="input-data">
+                                    <div class="input-content">
+                                        <p>结束节点</p>
+                                    </div>
+                                    <el-input-number v-model="b" :min="0" :max="num - 1" controls-position="right"
+                                        size="large" @change="handleChange" />
+                                </div>
+                                <el-button type="primary" @click="addEdgeByInput()" size="large" round>添加有向边
+                                </el-button>
 
-                        <div class="adjTab">
-                            <table>
-                                <tr v-for="(row, rowIndex) in matrix" :key="rowIndex">
-                                    <td v-for="(cell, columnIndex) in row" :key="columnIndex">
-                                        <div v-if="rowIndex == columnIndex">
-                                            <el-button type="info" :icon="Message" circle/>
-                                        </div>
-                                        <div v-else>
-                                            <div v-if="cell">
-                                                <el-button type="success" :icon="Check" circle
-                                                           @click="changeEdgeByClick(rowIndex, columnIndex, 'success')"/>
-                                            </div>
-                                            <div v-else>
-                                                <el-button type="danger" :icon="Delete" circle
-                                                           @click="changeEdgeByClick(rowIndex, columnIndex, 'danger')"/>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                        <p>遍历的起始节点</p>
-                        <el-input-number v-model="startNode" :min="0" :max="num-1" @change="handleChange"/>
-                        <el-button type="success" round @click="bfs()">开始BFS遍历</el-button>
-                        <el-button type="success" round @click="dfs_recursion()">开始递归的DFS遍历</el-button>
-                        <el-button type="success" round @click="dfs_nonrecursion()">开始非递归的DFS遍历</el-button>
-                        <div v-for="node in queue">
-                            <el-tag>{{ node }}</el-tag>
-                        </div>
-                        <div v-for="node in [...stack].reverse()">
-                            <el-tag>{{ node }}</el-tag>
-                        </div>
+                                <div class="adjTab">
+                                    <table>
+                                        <tr v-for="(row, rowIndex) in matrix" :key="rowIndex">
+                                            <td v-for="(cell, columnIndex) in row" :key="columnIndex">
+                                                <div v-if="rowIndex == columnIndex">
+                                                    <el-button type="info" :icon="Message" circle />
+                                                </div>
+                                                <div v-else>
+                                                    <div v-if="cell">
+                                                        <el-button type="success" :icon="Check" circle
+                                                            @click="changeEdgeByClick(rowIndex, columnIndex, 'success')" />
+                                                    </div>
+                                                    <div v-else>
+                                                        <el-button type="danger" :icon="Delete" circle
+                                                            @click="changeEdgeByClick(rowIndex, columnIndex, 'danger')" />
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </el-col>
+                            <el-col :span="8">
+                                <div class="search">
+                                    <h1 v-if="que_or_stk === 0"></h1>
+                                    <h1 v-else-if="que_or_stk === 1">显示队列</h1>
+                                    <h1 v-else-if="que_or_stk === 2">显示栈</h1>
+                                    <div v-for="node in queue">
+                                        <el-tag>{{ node }}</el-tag>
+                                    </div>
+                                    <div v-for="node in [...stack].reverse()">
+                                        <el-tag>{{ node }}</el-tag>
+                                    </div>
+                                </div>
+                            </el-col>
+                        </el-row>
                     </div>
                 </div>
-                <div v-for="edge in graphData.links" style="background: aqua">
+                <!-- <div v-for="edge in graphData.links" style="background: aqua">
                     {{ edge.source }} {{ edge.target }}
-                </div>
+                </div> -->
             </el-aside>
-            <el-main>
-                <div id="graph-container">
-                    <svg id="svg"></svg>
-                </div>
-            </el-main>
+            <el-container>
+                <el-main>
+                    <div class="graph-container">
+                        <svg id="svg"></svg>
+                    </div>
+                </el-main>
+                <el-footer>
+                    <div class="input-data">
+                        <div class="input-content">
+                            <p>遍历的起始节点</p>
+                        </div>
+                        <el-input-number v-model="startNode" :min="0" :max="num - 1" @change="handleChange" />
+                    </div>
+                    <div class="button">
+                        <el-button type="success" size="large" round @click="bfs()">开始BFS遍历</el-button>
+                    </div>
+                    <div class="button">
+                        <el-button type="success" size="large" round @click="dfs_recursion()">开始递归的DFS遍历</el-button>
+                    </div>
+                    <div class="button">
+                        <el-button type="success" size="large" round @click="dfs_nonrecursion()">开始非递归的DFS遍历</el-button>
+                    </div>
+                </el-footer>
+            </el-container>
         </el-container>
     </div>
 </template>
 
 <script setup>
-import {ref, onMounted, watch} from 'vue' //VE是elmentui，ref是变量，vue是修改g用的
-import {ElMessage} from 'element-plus' //发送提示信息
-import {Check, Delete, Message} from '@element-plus/icons-vue'
+import { ref, onMounted, watch } from 'vue' //VE是elmentui，ref是变量，vue是修改g用的
+import { ElMessage } from 'element-plus' //发送提示信息
+import { Check, Delete, Message } from '@element-plus/icons-vue'
 import * as d3 from 'd3'
 
 const num = ref(0);
@@ -86,6 +119,7 @@ const graphData = ref({
     nodes: [],
     links: []
 });
+const que_or_stk = ref(0)
 const queue = ref([])
 const stack = ref([])
 
@@ -105,7 +139,7 @@ function numCheckChange(check) {
 
     //这里的group是用来确定点的颜色的
     for (let i = 0; i < num.value; i++) {
-        graphData.value.nodes.push({id: i, group: i});
+        graphData.value.nodes.push({ id: i, group: i });
     }
 
     console.log('matrix Info: ', matrix.value.length, matrix.value[0].length);
@@ -115,9 +149,9 @@ function addEdgeByInput() {
     if (a.value < 0 || a.value >= num.value || b.value < 0 || b.value >= num.value) {
         ElMessage.error('起始节点和结束节点的编号应该大于0且小于等于' + num.value);
     } else {
-        ElMessage({message: '有向边添加成功.', type: 'success',});
+        ElMessage({ message: '有向边添加成功.', type: 'success', });
         matrix.value[a.value][b.value] = true;
-        graphData.value.links.push({source: a.value, target: b.value, value: 5});
+        graphData.value.links.push({ source: a.value, target: b.value, value: 5 });
         console.log(matrix.value[a.value][b.value]);
     }
 }
@@ -130,15 +164,17 @@ function changeEdgeByClick(rowIndex, columnIndex, type) {
     b.value = columnIndex;
     if (type === 'success') {
         matrix.value[rowIndex][columnIndex] = false;
+        matrix.value[columnIndex][rowIndex] = false;
 
         graphData.value.links = graphData.value.links.filter(edge => {
-            return !(edge.source === rowIndex && edge.target === columnIndex);
+            return !((edge.source === rowIndex && edge.target === columnIndex)
+                || edge.source === columnIndex && edge.target === rowIndex);
         });
     } else {
         matrix.value[rowIndex][columnIndex] = true;
         matrix.value[columnIndex][rowIndex] = true;
 
-        graphData.value.links.push({source: rowIndex, target: columnIndex, value: 100});
+        graphData.value.links.push({ source: rowIndex, target: columnIndex, value: 100 });
 
         console.log('source:', rowIndex, 'target:', columnIndex);
     }
@@ -161,12 +197,12 @@ function initGraph(data) {
 
     // The force simulation mutates links and nodes, so create a copy
     // so that re-evaluating this cell produces the same result.
-    const links = data.links.map(d => ({...d}));
-    const nodes = data.nodes.map(d => ({...d}));
+    const links = data.links.map(d => ({ ...d }));
+    const nodes = data.nodes.map(d => ({ ...d }));
 
     // Create a simulation with several forces.
     const simulation = d3.forceSimulation(nodes)
-        .force("link", d3.forceLink(links).id(d => d.id).strength(0.06))
+        .force("link", d3.forceLink(links).id(d => d.id).strength(0.03))
         .force("charge", d3.forceManyBody().strength(-100))
         .force("center", d3.forceCenter(width / 2, height / 2))
         .on("tick", ticked);
@@ -250,6 +286,7 @@ function initGraph(data) {
 }
 
 function bfs() {
+    que_or_stk.value = 1;
     stack.value = [];
     queue.value = [];
 
@@ -300,6 +337,7 @@ function onVisit(nodeIndex) {
 }
 
 function dfs_recursion() {
+    que_or_stk.value = 0;
     stack.value = [];
     queue.value = [];
 
@@ -344,6 +382,7 @@ function dfs_recursion() {
 }
 
 function dfs_nonrecursion() {
+    que_or_stk.value = 2;
     stack.value = [];
     queue.value = [];
 
@@ -385,8 +424,8 @@ function dfs_nonrecursion() {
 </script>
 
 <style>
-#input-container,
-#graph-container {
+.input-container,
+.graph-container {
     font-size: 16px;
     /* 或你想要的其他值 */
     vertical-align: top;
@@ -397,11 +436,41 @@ function dfs_nonrecursion() {
     margin-top: 5px;
 }
 
-.unselectable {
-    user-select: none;
-    -webkit-user-select: none; /* Safari */
-    -moz-user-select: none; /* Firefox */
-    -ms-user-select: none; /* IE/Edge */
+.el-tag {
+    font-size: 50px;
+    /* padding: 50px; */
+    width: 50px;
+    height: 50px;
+    margin-top: 5px;
 }
 
+.button {
+    margin-top: 10px;
+    margin-bottom: 20px;
+    margin-right: 20px;
+    display: inline;
+}
+
+.input-data {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.input-data .input-content {
+    margin-bottom: 2px;
+}
+
+.search {
+    margin: 50px;
+}
+
+.unselectable {
+    user-select: none;
+    -webkit-user-select: none;
+    /* Safari */
+    -moz-user-select: none;
+    /* Firefox */
+    -ms-user-select: none;
+    /* IE/Edge */
+}
 </style>

@@ -5,6 +5,7 @@
 
 html,
 body {
-    overflow: hidden;
+    /* overflow: hidden; */
     background: deepskyblue;
+    height: 100%;
 }
