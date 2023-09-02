@@ -1,47 +1,100 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
+    <section v-if="indexId === 0">
+        <div class="logo"><img class="logoPic" src="@/components/icons/myLogo.svg" /></div>
+        <div class="caption"><span>产品装配</span></div>
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div>
-  </header>
-
-  <main>
-    <TheWelcome />
-  </main>
+        <ul class="options">
+            <li @click="changeIndexId(1)">开始产品装配</li>
+            <li @click="changeIndexId(2)">尝试</li>
+        </ul>
+    </section>
+    <section v-else-if="indexId === 1">
+        <Input></Input>
+    </section>
+    <section v-else-if="indexId === 2">
+        <Try></Try>
+    </section>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-}
+<script setup>
+import { ref } from 'vue'
+import Input from "@/components/Input.vue"
+import Try from "@/components/try.vue"
 
+const indexId = ref(0);
+
+const changeIndexId = (newId) => {
+    indexId.value = newId;
+}
+</script>
+
+<style>
 .logo {
-  display: block;
-  margin: 0 auto 2rem;
+    width: 200px;
+    height: 200px;
+    background-color: rgba(255, 255, 255, 0.5);
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    margin-left: -100px;
+    margin-top: -100px;
+    /* box-shadow: 0 0 20px rgba(0, 0, 0, 0.2); */
 }
 
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
+.logo img {
+    width: 90%;
+    height: 90%;
+    padding-left: 35px;
+    padding-top: 40px;
+}
 
-  .logo {
-    margin: 0 2rem 0 0;
-  }
+.caption {
+    height: 60px;
+    width: 400px;
+    font-family: STZhongsong;
+    /*font-weight: bold;*/
+    font-size: 56px;
+    font-weight: bold;
+    letter-spacing: 5px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    color: white;
+    text-align: center;
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    margin-left: -200px;
+}
 
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+.options {
+    display: block;
+    width: 600px;
+    height: 300px;
+    list-style-type: none;
+    position: absolute;
+    top: 55%;
+    left: 50%;
+    margin-left: -300px;
+}
+
+.options li {
+    display: block;
+    width: 300px;
+    height: 75px;
+    background-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    border-radius: 1000px;
+    font-family: STZhongsong;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    color: white;
+    font-size: 36px;
+    margin: auto;
+    margin-top: 50px;
+    text-align: center;
+    padding-top: 17px;
+    transition: box-shadow 0.5s ease;
+}
+
+.options li:hover {
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
 }
 </style>
