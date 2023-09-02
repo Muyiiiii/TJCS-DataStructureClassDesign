@@ -203,7 +203,7 @@ function initGraph(data) {
     // Create a simulation with several forces.
     const simulation = d3.forceSimulation(nodes)
         .force("link", d3.forceLink(links).id(d => d.id).strength(0.03))
-        .force("charge", d3.forceManyBody().strength(-100))
+        .force("charge", d3.forceManyBody().strength(-50))
         .force("center", d3.forceCenter(width / 2, height / 2))
         .on("tick", ticked);
 
