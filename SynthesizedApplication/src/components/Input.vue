@@ -5,12 +5,8 @@
                 <div class="grid-content ep-bg-purple" />
                 <div class="demo-collapse">
                     <el-collapse v-model="activeNames" @change="handleChange">
-                        <section v-for="item in itemList">
+                        <section v-for="item in itemList" :key="item.id">
                             <el-collapse-item :title="item.name" :name="item.id">
-                                <template #title>
-                                    <span>{{ item.name }}</span>
-                                    <el-button>按钮</el-button>
-                                </template>
                                 <div class="title">鼠标放到ID列和行上试试 可以拖拽行和列</div>
                                 <div style="width:50%;">
                                     <table class="tb">
@@ -52,22 +48,35 @@
                 <el-input v-model="newItem" placeholder="Please input" />
                 <el-button type="success" size="large" @click="addItem(newItem)">添加物品</el-button>
             </div>
+            <el-select-v2 v-model="itemOnAssemble" :options="itemOptions" placeholder="Please select" size="large" />
+            <el-button type="primary" size="large">开始检测</el-button>
         </el-col>
     </el-row>
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive,computed } from 'vue'
 import draggable from "vuedraggable";
 
 const activeNames = ref(0)
 const generalId = ref(1)
 const newPath = ref('')
 const newItem = ref('')
-
+const itemOnAssemble = ref('')
+// value:选项的值,也就是选中该选项后绑定的 model 值
+// label: 选项的标签, 也就是显示在页面上的文本
+const itemOptions = computed(() => {
+    return itemList.map(item => {
+        return {
+            value: item.name,
+            label: item.name
+        }
+    })
+})
 
 const handleChange = (val: string[]) => {
     console.log(val)
+    console.log(itemOptions)
 }
 
 /*
