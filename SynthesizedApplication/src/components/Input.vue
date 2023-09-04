@@ -1,49 +1,71 @@
 <template>
-    <div class="input-container">
-        <div class="demo-collapse">
-            <el-collapse v-model="activeNames" @change="handleChange">
-                <el-collapse-item title="Consistency" name="1">
-                    <div class="title">鼠标放到ID列和行上试试 可以拖拽行和列</div>
-                    <div style="width:50%;">
-                        <table class="tb">
-                            <thead>
-                                <draggable v-model="state.headers" animation="200" tag="tr" :item-key="(key) => key">
-                                    <template #item="{ element: header }">
-                                        <th class="move">
-                                            {{ header }}
-                                        </th>
-                                    </template>
-                                </draggable>
-                            </thead>
-                            <draggable :list="state.list" handle=".move" animation="300" @start="onStart" @end="onEnd"
-                                       tag="tbody" item-key="name">
-                                <template #item="{ element }">
-                                    <tr>
-                                        <td class="move" v-for="(header, index) in state.headers" :key="header">
-                                            {{ element[header] }}
-                                        </td>
-                                    </tr>
+    <el-row>
+        <el-col :span="12">
+            <div class="input-container">
+                <div class="grid-content ep-bg-purple" />
+                <div class="demo-collapse">
+                    <el-collapse v-model="activeNames" @change="handleChange">
+                        <section v-for="item in itemList">
+                            <el-collapse-item :title="item.name" :name="item.id">
+                                <template #title>
+                                    <span>{{ item.name }}</span>
+                                    <el-button>按钮</el-button>
                                 </template>
-                            </draggable>
-                        </table>
-                        <el-input v-model="newPath" placeholder="Please input" />
-                        <el-button class="mt-4" style="width: 100%;background-color: aqua" @click="addPath">Add Item
-                        </el-button>
-                    </div>
-                </el-collapse-item>
-                <el-collapse-item title="Feedback" name="2">
-                    <p>2222222222222222222222222222222222222222222222</p>
-                </el-collapse-item>
-            </el-collapse>
-        </div>
-    </div>
+                                <div class="title">鼠标放到ID列和行上试试 可以拖拽行和列</div>
+                                <div style="width:50%;">
+                                    <table class="tb">
+                                        <thead>
+                                            <draggable v-model="item.headers" animation="200" tag="tr"
+                                                :item-key="(key) => key">
+                                                <template #item="{ element: header }">
+                                                    <th class="move">
+                                                        {{ header }}
+                                                    </th>
+                                                </template>
+                                            </draggable>
+                                        </thead>
+                                        <draggable :list="item.list" handle=".move" animation="300"
+                                            @start="onStart(item.id)" @end="onEnd(item.id)" tag="tbody" item-key="name">
+                                            <template #item="{ element }">
+                                                <tr>
+                                                    <td class="move" v-for="(header, index) in item.headers" :key="header">
+                                                        {{ element[header] }}
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </draggable>
+                                    </table>
+                                    <el-input v-model="newPath" placeholder="Please input" />
+                                    <el-button class="mt-4" style="width: 100%;background-color: aqua"
+                                        @click="addPath(item.id)">Add
+                                        Item
+                                    </el-button>
+                                </div>
+                            </el-collapse-item>
+                        </section>
+                    </el-collapse>
+                </div>
+            </div>
+        </el-col>
+        <el-col :span="12">
+            <div class="button" style="margin:30px;">
+                <el-input v-model="newItem" placeholder="Please input" />
+                <el-button type="success" size="large" @click="addItem(newItem)">添加物品</el-button>
+            </div>
+        </el-col>
+    </el-row>
 </template>
 
 <script lang="ts" setup>
-import {ref, reactive} from 'vue'
+import { ref, reactive } from 'vue'
 import draggable from "vuedraggable";
 
-const activeNames = ref(['1'])
+const activeNames = ref(0)
+const generalId = ref(1)
+const newPath = ref('')
+const newItem = ref('')
+
+
 const handleChange = (val: string[]) => {
     console.log(val)
 }
@@ -55,40 +77,61 @@ animation="300"            //动画效果
 @start="onStart"           //拖拽开始的事件
 @end="onEnd"               //拖拽结束的事件
 */
-const state = reactive({
-    //列的名称
-    headers: ["name"],
-    //需要拖拽的数据，拖拽后数据的顺序也会变化
-    list: [
-        {name: "11111111"},
-        {name: "22222222"},
-        {name: "33333333"},
-    ],
-    cnt: 3,
-});
-
-const newPath=ref('')
+const itemList = reactive([
+    {
+        id: 0,
+        name: '第一个物体',
+        //列的名称
+        headers: ["name"],
+        //需要拖拽的数据，拖拽后数据的顺序也会变化
+        list: [
+            { name: "11111111" },
+            { name: "22222222" },
+            { name: "33333333" },
+        ],
+        pathCnt: 3,
+    },
+]);
 
 //拖拽开始的事件
-const onStart = () => {
+const onStart = (id) => {
     console.log("开始拖拽");
 };
 
 //拖拽结束的事件
-const onEnd = () => {
+const onEnd = (id) => {
     console.log("结束拖拽");
-    console.log(state.list)
+    console.log(itemList[id].list)
 };
 
-const addPath = () => {
-    state.list.push({name:newPath.value})
-    newPath.value=''
+const addPath = (id) => {
+    itemList[id].list.push({ name: newPath.value })
+    itemList[id].pathCnt++
+    newPath.value = ''
 
+};
+
+const addItem = (item) => {
+    itemList.push({
+        id: generalId.value++,
+        name: item,
+        //列的名称
+        headers: ["name"],
+        //需要拖拽的数据，拖拽后数据的顺序也会变化
+        list: [
+            { name: "11111111" },
+            { name: "22222222" },
+            { name: "33333333" },
+        ],
+        pathCnt: 3,
+    });
+
+    newItem.value = '';
 };
 </script>
 
 <style>
-.input-container{
+.input-container {
     background-color: cornflowerblue;
     width: 60%;
     margin: 20px;

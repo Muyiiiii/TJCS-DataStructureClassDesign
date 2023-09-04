@@ -11,7 +11,8 @@
     "element-plus": "^2.3.12",
     "sass": "^1.66.1",
     "sortablejs": "^1.15.0",
-    "vue": "^3.3.4"
+    "vue": "^3.3.4",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.3.1",
