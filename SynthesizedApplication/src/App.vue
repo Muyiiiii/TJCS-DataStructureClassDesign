@@ -27,6 +27,7 @@ import Try from "@/components/try.vue"
 import Try1 from "@/components/try1.vue"
 
 const indexId = ref(0);
+const newPath=ref({})
 
 const changeIndexId = (newId) => {
     indexId.value = newId;
