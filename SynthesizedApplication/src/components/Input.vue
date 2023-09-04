@@ -25,65 +25,6 @@ import { reactive, ref } from 'vue'
 import Sortable from 'sortablejs'
 import { onMounted } from 'vue'
 
-const drag = reactive({});
-
-let dragIndex = 0;
-
-class Part {
-    constructor(id, name) {
-        this.id = id;
-        this.name = name;
-    }
-}
-class AssemblePath {
-    constructor(orderedParts) {
-        this.orderedParts = orderedParts;
-    }
-}
-class Produce {
-    constructor(parts, assemblePath) {
-        this.parts = parts;
-        this.assemblePath = assemblePath;
-    }
-
-    getDismantlePath(badPartId) {
-        const index = this.assemblyPath.orderedParts.findIndex(id => id === badPartId);
-        return this.assemblyPath.orderedParts.slice(index).reverse;
-    }
-
-    getAssemblePath(badPartId) {
-        const index = this.assemblyPath.orderedParts.findIndex(id => id === badPartId);
-        return this.assemblyPath.orderedParts.slice(index);
-    }
-}
-
-function dragstart(e, index) {
-    e.stopPropagation()
-    dragIndex = index
-    setTimeout(() => {
-        e.target.classList.add('moveing')
-    }, 0)
-}
-function dragenter(e, index) {
-    e.preventDefault()
-    // 拖拽到原位置时不触发
-    if (dragIndex !== index) {
-        const source = drag.list[dragIndex];
-        drag.list.splice(dragIndex, 1);
-        drag.list.splice(index, 0, source);
-
-        // 更新节点位置
-        dragIndex = index
-    }
-}
-function dragover(e) {
-    e.preventDefault()
-    e.dataTransfer.dropEffect = 'move'
-}
-function dragend(e) {
-    e.target.classList.remove('moveing')
-}
-
 const tableData = [
     {
         date: '2016-05-03',
@@ -145,21 +86,4 @@ const onAddItem = () => {
     width: 50%;
 }
 
-.card-header {
-    display: flex;
-    justify-content: space-evenly;
-    align-items: center;
-}
-
-.text {
-    font-size: 14px;
-}
-
-.item {
-    margin-bottom: 18px;
-}
-
-.box-card {
-    width: 480px;
-}
 </style>

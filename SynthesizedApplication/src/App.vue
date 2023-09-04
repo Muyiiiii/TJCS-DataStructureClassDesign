@@ -6,6 +6,7 @@
         <ul class="options">
             <li @click="changeIndexId(1)">开始产品装配</li>
             <li @click="changeIndexId(2)">尝试</li>
+            <li @click="changeIndexId(3)">尝试</li>
         </ul>
     </section>
     <section v-else-if="indexId === 1">
@@ -14,12 +15,16 @@
     <section v-else-if="indexId === 2">
         <Try></Try>
     </section>
+    <section v-else-if="indexId === 3">
+        <Try1></Try1>
+    </section>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import Input from "@/components/Input.vue"
 import Try from "@/components/try.vue"
+import Try1 from "@/components/try1.vue"
 
 const indexId = ref(0);
 
