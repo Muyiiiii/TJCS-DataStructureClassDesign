@@ -2,13 +2,9 @@
     cursor: move;
 }
 
-.custom-radius {
-    border-radius: 10px;
-    background: black;
-}
-
 .el-collapse-item__header {
-    background-color: #79bbff;
+    background-color: #e7f4fd;
+    color: #3a7999;
     width: 100%;
 }
 
@@ -18,7 +14,7 @@
 }
 
 table.tb {
-    color: #333;
+    color: #3a7999;
     border: solid=1px black;
     font-size: 13px;
     /* border-collapse: collapse; */
@@ -29,7 +25,7 @@ table.tb {
 }
 
 table.tb th {
-    background: #c6e2ff;
+    /* background: #c6e2ff; */
     border-width: 1px;
     padding: 8px;
     border-style: solid;
@@ -43,7 +39,7 @@ table.tb th:nth-of-type(1) {
 }
 
 table.tb td {
-    background: #d9ecff;
+    background: #b4bff5;
     border-width: 1px;
     padding: 8px;
     border-style: solid;
@@ -76,8 +72,8 @@ table.tb td:nth-of-type(1) {
 
 .card {
     width: 80%;
-    height: 70%;
-    margin: 10%;
+    height: 300px;
+    margin: 40px 10% 20px 10%;
     border-radius: 20px;
     padding: 5px;
     box-shadow: rgba(151, 65, 252, 0.2) 0 15px 30px -5px;

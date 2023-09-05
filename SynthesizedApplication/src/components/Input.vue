@@ -4,9 +4,10 @@
             <el-col :span="12">
                 <div class="show-container">
                     <!-- <div class="demo-collapse"> -->
+                    <p style="font-size: 15px;">(鼠标放到行上1的零件上，可以通过拖拽来决定安装步骤，顺序是由上往下)</p>
                     <el-collapse v-model="activeNames" @change="handleChange">
                         <section v-for="item in itemList" :key="item.id">
-                            <el-collapse-item :title="item.name + '(鼠标放到ID列和行上试试 可以拖拽行和列)'" :name="item.id">
+                            <el-collapse-item :title="item.name" :name="item.id">
                                 <div style="width:100%;">
                                     <table class="tb">
                                         <thead>
@@ -30,9 +31,11 @@
                                             </template>
                                         </draggable>
                                     </table>
-                                    <el-input v-model="newPath" placeholder="Please input" style="width: 70%;" />
-                                    <el-button class="mt-4" style="width: 30%;background-color: aqua"
-                                        @click="addPath(item.id)">Add Item</el-button>
+                                    <div style="margin:1%;">
+                                        <el-input v-model="newPath" placeholder="输入要加入到当前产品的零件" style="width: 68%;" />
+                                        <el-button class="mt-4" style="width: 28%;background-color:aquamarine"
+                                            @click="addPath(item.id)">Add Item</el-button>
+                                    </div>
                                 </div>
                             </el-collapse-item>
                         </section>
@@ -42,42 +45,65 @@
             </el-col>
             <el-col :span="12">
                 <div class="card">
-                    <div class="chose-container">
-                        <el-input v-model="newItem" placeholder="Please input" />
-                        <el-button type="success" size="large" @click="addItem(newItem)">添加物品</el-button>
+                    <div class="chose-container1">
+                        <el-input v-model="newItem" placeholder="请输入要添加的新产品的名称" size="large"
+                            style="width:70%; margin-bottom:5px;" />
+                        <el-button type="success" size="large" @click="addItem(newItem)" :style="{ float: 'right' }"
+                            style="display: block;">添加物品</el-button>
                     </div>
-                    <div class="chose-container">
-                        <el-select-v2 v-model="itemOnAssemble" :options="itemOptions" placeholder="Please select"
-                            size="large" />
-                        <el-button type="primary" size="large" @click="changeShowId(1)">开始检测</el-button>
+                    <div class="chose-container2">
+                        <el-select-v2 v-model="itemOnAssemble" :options="itemOptions" placeholder="请选择要维修的产品" size="large"
+                            style="width: 70%;" />
+                        <el-button type="primary" size="large" @click="changeShowId(1)"
+                            :style="{ float: 'right' }">开始检修</el-button>
                     </div>
                 </div>
             </el-col>
         </el-row>
     </div>
     <div v-else-if="showId === 1" class="assemble-container">
-        <div class="tags">
-            <div v-for="path in itemList[itemOnAssemble].list">
-                <el-tag v-if="path.value === partChosen" class="ml-2" type="danger">{{ path.value }}</el-tag>
-                <el-tag v-else>{{ path.value }}</el-tag>
+        <el-tag type="success" class="mx-1" effect="dark" round style="margin-left:10%;">
+            <p>所有零件</p>
+        </el-tag>
+        <div class="tags1">
+            <div v-for="path in itemList[itemOnAssemble].list" style="display: inline-flex;">
+                <el-row>
+                    <el-col :span="4">
+                        <el-tag v-if="path.value === partChosen" class="ml-2" type="danger">{{ path.value }}</el-tag>
+                        <el-tag v-else>{{ path.value }}</el-tag>
+                    </el-col>
+                </el-row>
             </div>
+
         </div>
-        <p>请选择要维修的零件</p>
-        <el-autocomplete v-model="partChosen" :fetch-suggestions="querySearch" placeholder="请选择" @select="handleSelect">
-            <template #default="{ item }">
-                <span>{{ item.value }}</span>
-            </template>
-        </el-autocomplete>
-        <el-button type="primary">开始维修</el-button>
-        <div class="tags">
-            <p>拆解路径</p>
+        <div class="fixChose">
+            <el-tag type="danger" class="mx-1" effect="dark" round>
+                <p>请选择要维修的零件</p>
+            </el-tag>
+            <el-autocomplete v-model="partChosen" :fetch-suggestions="querySearch" placeholder="请选择要维修的零件"
+                @select="handleSelect">
+                <template #default="{ item }">
+                    <span>{{ item.value }}</span>
+                </template>
+            </el-autocomplete>
+            <el-button type="primary">开始维修</el-button>
+        </div>
+
+        <el-button type="warning" round style="margin-left:10%;display: block;" size="large"
+            @click="() => showDismantle = !showDismantle">
+            <p>拆解路径显示开关</p>
+        </el-button>
+        <div class="tags2" v-show="showDismantle">
             <div v-for="path in itemList[itemOnAssemble].list.slice(partChosenIdx).reverse()">
                 <el-tag v-if="path.value === partChosen" class="ml-2" type="danger">{{ path.value }}</el-tag>
                 <el-tag v-else>{{ path.value }}</el-tag>
             </div>
         </div>
-        <div class="tags">
-            <p>安装路径</p>
+        <el-button type="warning" round style="margin-left:10%;margin-top: 5%;" size="large"
+            @click="() => showInstall = !showInstall">
+            <p>安装路径显示开关</p>
+        </el-button>
+        <div class="tags2" v-show="showInstall">
             <div v-for="path in itemList[itemOnAssemble].list.slice(partChosenIdx)">
                 <el-tag v-if="path.value === partChosen" class="ml-2" type="danger">{{ path.value }}</el-tag>
                 <el-tag v-else>{{ path.value }}</el-tag>
@@ -110,6 +136,9 @@ const itemOptions = computed(() => {
 
 const partChosen = ref('')
 const partChosenIdx = ref(-1)
+
+const showInstall = ref(true)
+const showDismantle = ref(true)
 
 const querySearch = (queryString, cb) => {
 
@@ -161,7 +190,7 @@ animation="300"            //动画效果
 const itemList = reactive([
     {
         id: 0,
-        name: '第一个物体',
+        name: '第一个默认物体',
         //列的名称
         headers: ["value"],
         //需要拖拽的数据，拖拽后数据的顺序也会变化
@@ -218,7 +247,6 @@ const addItem = (item) => {
 @import '@/assets/css/input.css';
 
 .show-container {
-    background-color: cornflowerblue;
     width: 100%;
     margin: 20px;
 }
@@ -227,19 +255,58 @@ div {
     border-radius: 10px;
 }
 
-.chose-container {
-    margin: 30px;
+.chose-container1 {
+    margin: 20px;
+}
+
+.chose-container2 {
+    margin: 60px 20px;
 }
 
 .assemble-container {
     width: 100%;
     height: 100%;
-    margin: 0%;
+    margin: 2% 0%;
+    /* background: linear-gradient(315deg, #42d392 25%, #647eff); */
     background: linear-gradient(315deg, #42d392 25%, #647eff);
 }
 
-.tags {
+.tags1 {
+    /* background: linear-gradient(315deg, #42d392 25%, #647eff); */
+    background: #FAFCFF;
     display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-height: 20%;
+    border: #AF40FF;
+    width: 80%;
+    margin: 0.5% 10%;
+    /* Assuming each row is 20px */
+    overflow-y: auto;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+
+    /* Show vertical scrollbar when content exceeds max-height */
+}
+
+.tags2 {
+    /* background: linear-gradient(315deg, #42d392 25%, #647eff); */
+    background: #FAFCFF;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-height: 20%;
+    border: #AF40FF;
+    width: 80%;
+    margin: 1% 10% 2% 10%;
+    /* Assuming each row is 20px */
+    overflow-y: auto;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+
+    /* Show vertical scrollbar when content exceeds max-height */
+}
+
+.fixChose {
+    margin: 2% 10%;
 }
 
 .el-tag {
