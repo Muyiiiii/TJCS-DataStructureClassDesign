@@ -109,6 +109,9 @@
                 <el-tag v-else>{{ path.value }}</el-tag>
             </div>
         </div>
+        <el-button type="info" round style="margin-left:80%;margin-top: 5%;" size="large" @click="changeShowId(0)">
+            <p>返回</p>
+        </el-button>
     </div>
 </template>
 
