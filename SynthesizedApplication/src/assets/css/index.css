@@ -7,6 +7,6 @@ html,
 body,
 #app {
   /* overflow: hidden; */
-  background: deepskyblue;
+  background: linear-gradient(315deg, #42d392 25%, #647eff);
   height: 100%;
 }

@@ -3,53 +3,55 @@
         <el-row>
             <el-col :span="12">
                 <div class="show-container">
-                    <div class="demo-collapse">
-                        <el-collapse v-model="activeNames" @change="handleChange">
-                            <section v-for="item in itemList" :key="item.id">
-                                <el-collapse-item :title="item.name" :name="item.id">
-                                    <div class="title">鼠标放到ID列和行上试试 可以拖拽行和列</div>
-                                    <div style="width:50%;">
-                                        <table class="tb">
-                                            <thead>
-                                                <draggable v-model="item.headers" animation="200" tag="tr"
-                                                    :item-key="(key) => key">
-                                                    <template #item="{ element: header }">
-                                                        <th class="move">
-                                                            {{ header }}
-                                                        </th>
-                                                    </template>
-                                                </draggable>
-                                            </thead>
-                                            <draggable :list="item.list" handle=".move" animation="300"
-                                                @start="onStart(item.id)" @end="onEnd(item.id)" tag="tbody" item-key="name">
-                                                <template #item="{ element }">
-                                                    <tr>
-                                                        <td class="move" v-for="header in item.headers" :key="header">
-                                                            {{ element[header] }}
-                                                        </td>
-                                                    </tr>
+                    <!-- <div class="demo-collapse"> -->
+                    <el-collapse v-model="activeNames" @change="handleChange">
+                        <section v-for="item in itemList" :key="item.id">
+                            <el-collapse-item :title="item.name + '(鼠标放到ID列和行上试试 可以拖拽行和列)'" :name="item.id">
+                                <div style="width:100%;">
+                                    <table class="tb">
+                                        <thead>
+                                            <draggable v-model="item.headers" animation="200" tag="tr"
+                                                :item-key="(key) => key">
+                                                <template #item="{ element: header }">
+                                                    <th class="move">
+                                                        {{ header }}
+                                                    </th>
                                                 </template>
                                             </draggable>
-                                        </table>
-                                        <el-input v-model="newPath" placeholder="Please input" />
-                                        <el-button class="mt-4" style="width: 100%;background-color: aqua"
-                                            @click="addPath(item.id)">Add
-                                            Item
-                                        </el-button>
-                                    </div>
-                                </el-collapse-item>
-                            </section>
-                        </el-collapse>
-                    </div>
+                                        </thead>
+                                        <draggable :list="item.list" handle=".move" animation="300"
+                                            @start="onStart(item.id)" @end="onEnd(item.id)" tag="tbody" item-key="name">
+                                            <template #item="{ element }">
+                                                <tr>
+                                                    <td class="move" v-for="header in item.headers" :key="header">
+                                                        {{ element[header] }}
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                        </draggable>
+                                    </table>
+                                    <el-input v-model="newPath" placeholder="Please input" style="width: 70%;" />
+                                    <el-button class="mt-4" style="width: 30%;background-color: aqua"
+                                        @click="addPath(item.id)">Add Item</el-button>
+                                </div>
+                            </el-collapse-item>
+                        </section>
+                    </el-collapse>
+                    <!-- </div> -->
                 </div>
             </el-col>
             <el-col :span="12">
-                <div class="button" style="margin:30px;">
-                    <el-input v-model="newItem" placeholder="Please input" />
-                    <el-button type="success" size="large" @click="addItem(newItem)">添加物品</el-button>
+                <div class="card">
+                    <div class="chose-container">
+                        <el-input v-model="newItem" placeholder="Please input" />
+                        <el-button type="success" size="large" @click="addItem(newItem)">添加物品</el-button>
+                    </div>
+                    <div class="chose-container">
+                        <el-select-v2 v-model="itemOnAssemble" :options="itemOptions" placeholder="Please select"
+                            size="large" />
+                        <el-button type="primary" size="large" @click="changeShowId(1)">开始检测</el-button>
+                    </div>
                 </div>
-                <el-select-v2 v-model="itemOnAssemble" :options="itemOptions" placeholder="Please select" size="large" />
-                <el-button type="primary" size="large" @click="changeShowId(1)">开始检测</el-button>
             </el-col>
         </el-row>
     </div>
@@ -87,6 +89,7 @@
 <script lang="ts" setup>
 import { ref, reactive, computed } from 'vue'
 import draggable from "vuedraggable";
+import { ElMessage } from 'element-plus'
 
 const showId = ref(0)
 const activeNames = ref(0)
@@ -132,13 +135,20 @@ const handleSelect = (item) => {
 }
 
 const changeShowId = (id) => {
-    showId.value = id
+    if (id === 1 && itemList[itemOnAssemble.value].list.length === 0) {
+        ElMessage({ showClose: true, message: '要维修的产品的安装路径为空，请先填写安装路径', type: 'error', })
+        activeNames.value = itemOnAssemble.value
+        showId.value = 0
+    } else {
+        showId.value = id
+    }
 }
 
 const handleChange = (val: string[]) => {
-    console.log(val)
-    console.log(itemOptions)
-    console.log(itemOnAssemble)
+    // console.log(val)
+    // console.log(itemOptions)
+    // console.log(itemOnAssemble)
+    console.log(activeNames)
 }
 
 /*
@@ -176,36 +186,49 @@ const onEnd = (id) => {
 };
 
 const addPath = (id) => {
-    itemList[id].list.push({ value: newPath.value })
-    itemList[id].pathCnt++
-    newPath.value = ''
-
+    if (newPath.value === '') {
+        ElMessage({ showClose: true, message: '添加的产品的零件名称不能为空！', type: 'error', })
+    } else {
+        itemList[id].list.push({ value: newPath.value })
+        itemList[id].pathCnt++
+        newPath.value = ''
+    }
 };
 
 const addItem = (item) => {
-    itemList.push({
-        id: generalId.value++,
-        name: item,
-        //列的名称
-        headers: ["value"],
-        //需要拖拽的数据，拖拽后数据的顺序也会变化
-        list: [
-            { value: "11111111" },
-            { value: "22222222" },
-            { value: "33333333" },
-        ],
-        pathCnt: 3,
-    });
+    if (item === '') {
+        ElMessage({ showClose: true, message: '添加的产品名称不能为空！', type: 'error', })
+    } else {
+        itemList.push({
+            id: generalId.value++,
+            name: item,
+            //列的名称
+            headers: ["value"],
+            //需要拖拽的数据，拖拽后数据的顺序也会变化
+            list: [],
+            pathCnt: 3,
+        });
 
-    newItem.value = '';
+        newItem.value = '';
+    }
 };
 </script>
 
 <style>
+@import '@/assets/css/input.css';
+
 .show-container {
     background-color: cornflowerblue;
-    width: 60%;
+    width: 100%;
     margin: 20px;
+}
+
+div {
+    border-radius: 10px;
+}
+
+.chose-container {
+    margin: 30px;
 }
 
 .assemble-container {
@@ -228,71 +251,5 @@ const addItem = (item) => {
     /* display: flex;
     align-items: center;
     justify-content: center; */
-}
-
-.title {
-    padding: 3px;
-    font-size: 13px;
-}
-
-.itxst {
-    width: 600px;
-}
-
-.move {
-    cursor: move;
-}
-
-table.tb {
-    color: #333;
-    border: solid 1px #999;
-    font-size: 13px;
-    border-collapse: collapse;
-    min-width: 500px;
-    user-select: none;
-}
-
-table.tb th {
-    background: rgb(168 173 217);
-    border-width: 1px;
-    padding: 8px;
-    border-style: solid;
-    border-color: #999;
-    text-align: left;
-}
-
-table.tb th:nth-of-type(1) {
-    text-align: center;
-}
-
-table.tb td {
-    background: #d6c8c8;
-    border-width: 1px;
-    padding: 8px;
-    border-style: solid;
-    border-color: #999;
-}
-
-table.tb td:nth-of-type(1) {
-    text-align: center;
-}
-
-.my-autocomplete li {
-    line-height: normal;
-    padding: 7px;
-}
-
-.my-autocomplete li .name {
-    text-overflow: ellipsis;
-    overflow: hidden;
-}
-
-.my-autocomplete li .addr {
-    font-size: 12px;
-    color: #b4b4b4;
-}
-
-.my-autocomplete li .highlighted .addr {
-    color: #ddd;
 }
 </style>

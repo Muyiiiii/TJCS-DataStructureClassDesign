@@ -1,0 +1,85 @@
+.move {
+    cursor: move;
+}
+
+.custom-radius {
+    border-radius: 10px;
+    background: black;
+}
+
+.el-collapse-item__header {
+    background-color: #79bbff;
+    width: 100%;
+}
+
+.el-collapse-item__content {
+    background: linear-gradient(315deg, #f0f9eb 25%, #a0cfff);
+    width: 100%;
+}
+
+table.tb {
+    color: #333;
+    border: solid=1px black;
+    font-size: 13px;
+    /* border-collapse: collapse; */
+    /* min-width: 500px; */
+    user-select: none;
+    border-radius: 10px;
+    width: 100%
+}
+
+table.tb th {
+    background: #c6e2ff;
+    border-width: 1px;
+    padding: 8px;
+    border-style: solid;
+    border-color: #999;
+    text-align: left;
+    border-radius: 10px;
+}
+
+table.tb th:nth-of-type(1) {
+    text-align: center;
+}
+
+table.tb td {
+    background: #d9ecff;
+    border-width: 1px;
+    padding: 8px;
+    border-style: solid;
+    border-color: #999;
+    border-radius: 10px;
+}
+
+table.tb td:nth-of-type(1) {
+    text-align: center;
+}
+
+.my-autocomplete li {
+    line-height: normal;
+    padding: 7px;
+}
+
+.my-autocomplete li .name {
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.my-autocomplete li .addr {
+    font-size: 12px;
+    color: #b4b4b4;
+}
+
+.my-autocomplete li .highlighted .addr {
+    color: #ddd;
+}
+
+.card {
+    width: 80%;
+    height: 70%;
+    margin: 10%;
+    border-radius: 20px;
+    padding: 5px;
+    box-shadow: rgba(151, 65, 252, 0.2) 0 15px 30px -5px;
+    background-image: linear-gradient(144deg, #AF40FF, #5B42F3 50%, #00DDEB);
+}
