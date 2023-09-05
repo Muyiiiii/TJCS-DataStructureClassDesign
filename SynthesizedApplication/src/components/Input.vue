@@ -1,82 +1,144 @@
 <template>
-    <el-row>
-        <el-col :span="12">
-            <div class="input-container">
-                <div class="grid-content ep-bg-purple" />
-                <div class="demo-collapse">
-                    <el-collapse v-model="activeNames" @change="handleChange">
-                        <section v-for="item in itemList" :key="item.id">
-                            <el-collapse-item :title="item.name" :name="item.id">
-                                <div class="title">鼠标放到ID列和行上试试 可以拖拽行和列</div>
-                                <div style="width:50%;">
-                                    <table class="tb">
-                                        <thead>
-                                            <draggable v-model="item.headers" animation="200" tag="tr"
-                                                :item-key="(key) => key">
-                                                <template #item="{ element: header }">
-                                                    <th class="move">
-                                                        {{ header }}
-                                                    </th>
+    <div v-if="showId === 0" class="input-container">
+        <el-row>
+            <el-col :span="12">
+                <div class="show-container">
+                    <div class="demo-collapse">
+                        <el-collapse v-model="activeNames" @change="handleChange">
+                            <section v-for="item in itemList" :key="item.id">
+                                <el-collapse-item :title="item.name" :name="item.id">
+                                    <div class="title">鼠标放到ID列和行上试试 可以拖拽行和列</div>
+                                    <div style="width:50%;">
+                                        <table class="tb">
+                                            <thead>
+                                                <draggable v-model="item.headers" animation="200" tag="tr"
+                                                    :item-key="(key) => key">
+                                                    <template #item="{ element: header }">
+                                                        <th class="move">
+                                                            {{ header }}
+                                                        </th>
+                                                    </template>
+                                                </draggable>
+                                            </thead>
+                                            <draggable :list="item.list" handle=".move" animation="300"
+                                                @start="onStart(item.id)" @end="onEnd(item.id)" tag="tbody" item-key="name">
+                                                <template #item="{ element }">
+                                                    <tr>
+                                                        <td class="move" v-for="header in item.headers" :key="header">
+                                                            {{ element[header] }}
+                                                        </td>
+                                                    </tr>
                                                 </template>
                                             </draggable>
-                                        </thead>
-                                        <draggable :list="item.list" handle=".move" animation="300"
-                                            @start="onStart(item.id)" @end="onEnd(item.id)" tag="tbody" item-key="name">
-                                            <template #item="{ element }">
-                                                <tr>
-                                                    <td class="move" v-for="(header, index) in item.headers" :key="header">
-                                                        {{ element[header] }}
-                                                    </td>
-                                                </tr>
-                                            </template>
-                                        </draggable>
-                                    </table>
-                                    <el-input v-model="newPath" placeholder="Please input" />
-                                    <el-button class="mt-4" style="width: 100%;background-color: aqua"
-                                        @click="addPath(item.id)">Add
-                                        Item
-                                    </el-button>
-                                </div>
-                            </el-collapse-item>
-                        </section>
-                    </el-collapse>
+                                        </table>
+                                        <el-input v-model="newPath" placeholder="Please input" />
+                                        <el-button class="mt-4" style="width: 100%;background-color: aqua"
+                                            @click="addPath(item.id)">Add
+                                            Item
+                                        </el-button>
+                                    </div>
+                                </el-collapse-item>
+                            </section>
+                        </el-collapse>
+                    </div>
                 </div>
+            </el-col>
+            <el-col :span="12">
+                <div class="button" style="margin:30px;">
+                    <el-input v-model="newItem" placeholder="Please input" />
+                    <el-button type="success" size="large" @click="addItem(newItem)">添加物品</el-button>
+                </div>
+                <el-select-v2 v-model="itemOnAssemble" :options="itemOptions" placeholder="Please select" size="large" />
+                <el-button type="primary" size="large" @click="changeShowId(1)">开始检测</el-button>
+            </el-col>
+        </el-row>
+    </div>
+    <div v-else-if="showId === 1" class="assemble-container">
+        <div class="tags">
+            <div v-for="path in itemList[itemOnAssemble].list">
+                <el-tag v-if="path.value === partChosen" class="ml-2" type="danger">{{ path.value }}</el-tag>
+                <el-tag v-else>{{ path.value }}</el-tag>
             </div>
-        </el-col>
-        <el-col :span="12">
-            <div class="button" style="margin:30px;">
-                <el-input v-model="newItem" placeholder="Please input" />
-                <el-button type="success" size="large" @click="addItem(newItem)">添加物品</el-button>
+        </div>
+        <p>请选择要维修的零件</p>
+        <el-autocomplete v-model="partChosen" :fetch-suggestions="querySearch" placeholder="请选择" @select="handleSelect">
+            <template #default="{ item }">
+                <span>{{ item.value }}</span>
+            </template>
+        </el-autocomplete>
+        <el-button type="primary">开始维修</el-button>
+        <div class="tags">
+            <p>拆解路径</p>
+            <div v-for="path in itemList[itemOnAssemble].list.slice(partChosenIdx).reverse()">
+                <el-tag v-if="path.value === partChosen" class="ml-2" type="danger">{{ path.value }}</el-tag>
+                <el-tag v-else>{{ path.value }}</el-tag>
             </div>
-            <el-select-v2 v-model="itemOnAssemble" :options="itemOptions" placeholder="Please select" size="large" />
-            <el-button type="primary" size="large">开始检测</el-button>
-        </el-col>
-    </el-row>
+        </div>
+        <div class="tags">
+            <p>安装路径</p>
+            <div v-for="path in itemList[itemOnAssemble].list.slice(partChosenIdx)">
+                <el-tag v-if="path.value === partChosen" class="ml-2" type="danger">{{ path.value }}</el-tag>
+                <el-tag v-else>{{ path.value }}</el-tag>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive,computed } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import draggable from "vuedraggable";
 
+const showId = ref(0)
 const activeNames = ref(0)
 const generalId = ref(1)
 const newPath = ref('')
 const newItem = ref('')
-const itemOnAssemble = ref('')
+const itemOnAssemble = ref()
 // value:选项的值,也就是选中该选项后绑定的 model 值
 // label: 选项的标签, 也就是显示在页面上的文本
 const itemOptions = computed(() => {
     return itemList.map(item => {
         return {
-            value: item.name,
+            value: item.id,
             label: item.name
         }
     })
 })
 
+const partChosen = ref('')
+const partChosenIdx = ref(-1)
+
+const querySearch = (queryString, cb) => {
+
+    // 过滤出包含queryString的选项
+    const includeResults = itemList[itemOnAssemble.value].list.filter(i => i.value.includes(queryString))
+
+    // 过滤出剩余不包含的选项
+    const excludeResults = itemList[itemOnAssemble.value].list.filter(i => !i.value.includes(queryString))
+
+    const results = queryString
+        ? [...includeResults, ...excludeResults]
+        : itemList[itemOnAssemble.value].list
+    cb(results)
+    console.log(itemList[0].list)
+    console.log(queryString)
+    console.log(results)
+}
+
+const handleSelect = (item) => {
+    partChosen.value = item.value
+    partChosenIdx.value = itemList[itemOnAssemble.value].list.findIndex(d => d.value === item.value)
+    console.log(item)
+}
+
+const changeShowId = (id) => {
+    showId.value = id
+}
+
 const handleChange = (val: string[]) => {
     console.log(val)
     console.log(itemOptions)
+    console.log(itemOnAssemble)
 }
 
 /*
@@ -91,12 +153,12 @@ const itemList = reactive([
         id: 0,
         name: '第一个物体',
         //列的名称
-        headers: ["name"],
+        headers: ["value"],
         //需要拖拽的数据，拖拽后数据的顺序也会变化
         list: [
-            { name: "11111111" },
-            { name: "22222222" },
-            { name: "33333333" },
+            { value: "11111111" },
+            { value: "22222222" },
+            { value: "33333333" },
         ],
         pathCnt: 3,
     },
@@ -114,7 +176,7 @@ const onEnd = (id) => {
 };
 
 const addPath = (id) => {
-    itemList[id].list.push({ name: newPath.value })
+    itemList[id].list.push({ value: newPath.value })
     itemList[id].pathCnt++
     newPath.value = ''
 
@@ -125,12 +187,12 @@ const addItem = (item) => {
         id: generalId.value++,
         name: item,
         //列的名称
-        headers: ["name"],
+        headers: ["value"],
         //需要拖拽的数据，拖拽后数据的顺序也会变化
         list: [
-            { name: "11111111" },
-            { name: "22222222" },
-            { name: "33333333" },
+            { value: "11111111" },
+            { value: "22222222" },
+            { value: "33333333" },
         ],
         pathCnt: 3,
     });
@@ -140,10 +202,32 @@ const addItem = (item) => {
 </script>
 
 <style>
-.input-container {
+.show-container {
     background-color: cornflowerblue;
     width: 60%;
     margin: 20px;
+}
+
+.assemble-container {
+    width: 100%;
+    height: 100%;
+    margin: 0%;
+    background: linear-gradient(315deg, #42d392 25%, #647eff);
+}
+
+.tags {
+    display: flex;
+}
+
+.el-tag {
+    font-size: 20px;
+    height: 30px;
+    padding: 10px;
+    margin: 5px;
+
+    /* display: flex;
+    align-items: center;
+    justify-content: center; */
 }
 
 .title {
@@ -191,5 +275,24 @@ table.tb td {
 
 table.tb td:nth-of-type(1) {
     text-align: center;
+}
+
+.my-autocomplete li {
+    line-height: normal;
+    padding: 7px;
+}
+
+.my-autocomplete li .name {
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.my-autocomplete li .addr {
+    font-size: 12px;
+    color: #b4b4b4;
+}
+
+.my-autocomplete li .highlighted .addr {
+    color: #ddd;
 }
 </style>

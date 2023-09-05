@@ -1,5 +1,5 @@
 <template>
-    <section v-if="indexId === 0">
+    <div v-if="indexId === 0">
         <div class="logo"><img class="logoPic" src="@/components/icons/myLogo.svg" /></div>
         <div class="caption"><span>产品装配</span></div>
 
@@ -8,16 +8,16 @@
             <li @click="changeIndexId(2)">尝试</li>
             <li @click="changeIndexId(3)">尝试</li>
         </ul>
-    </section>
-    <section v-else-if="indexId === 1">
+    </div>
+    <div  class="showComponent" v-else-if="indexId === 1">
         <Input></Input>
-    </section>
-    <section v-else-if="indexId === 2">
+    </div>
+    <div class="showComponent" v-else-if="indexId === 2">
         <Try></Try>
-    </section>
-    <section v-else-if="indexId === 3">
+    </div>
+    <div class="showComponent" v-else-if="indexId === 3">
         <Try1></Try1>
-    </section>
+    </div>
 </template>
 
 <script setup>
@@ -27,7 +27,6 @@ import Try from "@/components/try.vue"
 import Try1 from "@/components/try1.vue"
 
 const indexId = ref(0);
-const newPath=ref({})
 
 const changeIndexId = (newId) => {
     indexId.value = newId;
@@ -35,6 +34,10 @@ const changeIndexId = (newId) => {
 </script>
 
 <style>
+.showComponent{
+    height: 100%;
+}
+
 .logo {
     width: 200px;
     height: 200px;

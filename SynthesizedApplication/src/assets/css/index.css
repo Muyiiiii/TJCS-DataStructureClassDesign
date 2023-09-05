@@ -4,7 +4,8 @@
 }
 
 html,
-body {
+body,
+#app {
   /* overflow: hidden; */
   background: deepskyblue;
   height: 100%;
