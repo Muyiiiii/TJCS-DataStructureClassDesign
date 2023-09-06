@@ -86,7 +86,7 @@
                     <span>{{ item.value }}</span>
                 </template>
             </el-autocomplete>
-            <el-button type="primary">开始维修</el-button>
+            <el-button type="primary" @click="() => { showInstall = showDismantle = true }">开始维修</el-button>
         </div>
 
         <el-button type="warning" round style="margin-left:10%;display: block;" size="large"
@@ -140,8 +140,8 @@ const itemOptions = computed(() => {
 const partChosen = ref('')
 const partChosenIdx = ref(-1)
 
-const showInstall = ref(true)
-const showDismantle = ref(true)
+const showInstall = ref(false)
+const showDismantle = ref(false)
 
 const querySearch = (queryString, cb) => {
 
