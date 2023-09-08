@@ -4,7 +4,7 @@
         <div class="caption"><span>邻接矩阵</span></div>
 
         <ul class="options">
-            <li @click="buildTable(1)">建立临界矩阵</li>
+            <li @click="buildTable(1)">建立邻接矩阵</li>
         </ul>
     </section>
     <section v-else-if="indexId === 1">
