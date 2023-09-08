@@ -173,6 +173,8 @@ const changeShowId = (id) => {
         showId.value = 0
     } else {
         showId.value = id
+        partChosen.value = ''
+        partChosenIdx.value = ''
     }
 }
 
